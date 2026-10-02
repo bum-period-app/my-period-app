@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Period | บันทึกประจำเดือน</title>
+<style>
+:root {
+  --pink: #e875a5;
+  --purple: #9276d8;
+  --light: #fff4f8;
+  --text: #49384e;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(140deg,#fff5f8,#f4efff);
+  color: var(--text);
+}
+header {
+  background: linear-gradient(120deg,#e875a5,#a17add);
+  color: white;
+  padding: 30px 22px;
+  border-radius: 0 0 30px 30px;
+}
+header h1 { margin: 0 0 8px; font-size: 28px; }
+header p { margin: 0; }
+main { max-width: 720px; margin: auto; padding: 18px; }
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 5px 20px #6e477510;
+}
+h2 { font-size: 19px; margin-top: 0; }
+label {
+  display: block;
+  margin: 14px 0 7px;
+  font-size: 14px;
+  font-weight: bold;
+}
+input, select, textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #eadce9;
+  border-radius: 12px;
+  background: #fffafd;
+  color: var(--text);
+  font: inherit;
+}
+textarea { min-height: 75px; resize: vertical; }
+button {
+  border: 0;
+  border-radius: 12px;
+  padding: 12px 16px;
+  background: var(--pink);
+  color: white;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 14px;
+}
+button.secondary { background: var(--purple); }
+button.danger { background: #fff0f1; color: #b63e5d; }
+button:active { opacity: .8; }
+.full { width: 100%; }
+.stat {
+  background: var(--light);
+  border-radius: 15px;
+  padding: 15px;
+  margin-top: 12px;
+}
+.stat strong {
+  display: block;
+  color: #bd5289;
+  font-size: 21px;
+  margin-top: 5px;
+}
+.small { font-size: 12px; color: #88778b; line-height: 1.6; }
+.record {
+  border-left: 4px solid #e875a5;
+  background: #fff8fb;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 10px 0;
+  overflow-wrap: anywhere;
+}
+.record button { margin-top: 8px; }
+footer { text-align: center; padding: 10px 20px 28px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌸 My Period</h1>
+  <p>เข้าใจร่างกาย ดูแลตัวเองในทุก ๆ วัน</p>
+</header>
+
+<main>
+  <section class="card">
+    <h2>💗 ภาพรวมรอบเดือน</h2>
+    <div class="stat">
+      วันที่วันนี้
+      <strong id="today">-</strong>
+    </div>
+    <div class="stat">
+      ประจำเดือนรอบถัดไปโดยประมาณ
+      <strong id="next">ยังไม่มีข้อมูล</strong>
+      <p id="countdown" class="small"></p>
+    </div>
+    <div class="stat">
+      รอบเดือนเฉลี่ย
+      <strong id="cycleDisplay">28 วัน</strong>
+    </div>
+    <p class="small">
+      วันที่คาดการณ์เป็นเพียงการประมาณ รอบเดือนจริงอาจเปลี่ยนแปลงได้
+    </p>
+  </section>
+
+  <section class="card">
+    <h2>📅 ตั้งค่ารอบเดือน</h2>
+    <label for="start">วันแรกของประจำเดือนครั้งล่าสุด</label>
+    <input type="date" id="start">
+    <label for="cycle">ความยาวรอบเดือน (วัน)</label>
+    <input type="number" id="cycle" min="15" max="60" value="28">
+    <label for="duration">จำนวนวันที่มีประจำเดือน</label>
+    <input type="number" id="duration" min="1" max="15" value="5">
+    <button class="full" onclick="saveSettings()">บันทึกข้อมูลรอบเดือน</button>
+  </section>
+
+  <section class="card">
+    <h2>📝 บันทึกอาการประจำวัน</h2>
+    <label for="logDate">วันที่บันทึก</label>
+    <input type="date" id="logDate">
+    <label for="flow">สถานะประจำเดือน</label>
+    <select id="flow">
+      <option value="มีประจำเดือน">มีประจำเดือน</option>
+      <option value="ไม่มีประจำเดือน">ไม่มีประจำเดือน</option>
+      <option value="มีเลือดกะปริดกะปรอย">มีเลือดกะปริดกะปรอย</option>
+    </select>
+    <label for="pain">ระดับความปวด</label>
+    <select id="pain">
+      <option value="0">0 — ไม่ปวด</option>
+      <option value="1">1 — ปวดเล็กน้อย</option>
+      <option value="2">2 — ปวดปานกลาง</option>
+      <option value="3">3 — ปวดมาก</option>
+    </select>
+    <label for="symptoms">อาการอื่น ๆ</label>
+    <select id="symptoms">
+      <option value="ไม่มีอาการอื่น">ไม่มีอาการอื่น</option>
+      <option value="ปวดหลัง">ปวดหลัง</option>
+      <option value="อ่อนเพลีย">อ่อนเพลีย</option>
+      <option value="ปวดศีรษะ">ปวดศีรษะ</option>
+      <option value="อารมณ์แปรปรวน">อารมณ์แปรปรวน</option>
+      <option value="ท้องอืด">ท้องอืด</option>
+      <option value="อื่น ๆ">อื่น ๆ</option>
+    </select>
+    <label for="note">บันทึกเพิ่มเติม</label>
+    <textarea id="note" placeholder="วันนี้รู้สึกอย่างไรบ้าง..."></textarea>
+    <button class="full" onclick="saveLog()">บันทึกอาการ</button>
+  </section>
+
+  <section class="card">
+    <h2>📚 ประวัติที่บันทึกไว้</h2>
+    <div id="records"></div>
+    <p id="empty" class="small">ยังไม่มีประวัติ ลองบันทึกข้อมูลแรกของคุณได้เลย</p>
+    <button class="danger full" onclick="clearLogs()">ลบประวัติอาการทั้งหมด</button>
+  </section>
+
+  <section class="card">
+    <h2>🌷 ดูแลตัวเอง</h2>
+    <p>• พักผ่อนให้เพียงพอ</p>
+    <p>• ดื่มน้ำและรับประทานอาหารให้หลากหลาย</p>
+    <p>• หากปวดมากจนใช้ชีวิตประจำวันไม่ได้ ควรปรึกษาบุคลากรทางการแพทย์</p>
+  </section>
+</main>
+
+<footer class="small">
+  My Period 🌸 ข้อมูลส่วนตัวของคุณ<br>
+  ข้อมูลบันทึกไว้ในเบราว์เซอร์ของอุปกรณ์นี้
+</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const todayISO = () => {
+  const d = new Date();
+  return ${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')};
+};
+const dateText = value => {
+  if (!value) return '-';
+  const [y,m,d] = value.split('-').map(Number);
+  return new Date(y,m-1,d).toLocaleDateString('th-TH',{
+    day:'numeric',month:'long',year:'numeric'
+  });
+};
+const dayDiff = (a,b) =>
+  Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/86400000);
+
+let settings = {};
+let logs = [];
+
+try {
+  settings = JSON.parse(localStorage.getItem('mpSettings') || '{}');
+  logs = JSON.parse(localStorage.getItem('mpLogs') || '[]');
+} catch(e) {
+  settings = {};
+  logs = [];
+}
+
+function refresh() {
+  $('today').textContent = dateText(todayISO());
+  $('cycleDisplay').textContent = (settings.cycle || 28) + ' วัน';
+
+  if (settings.start) {
+    const cycle = Number(settings.cycle) || 28;
+    const elapsed = dayDiff(settings.start,todayISO());
+    const passed = ((elapsed % cycle) + cycle) % cycle;
+    const next = new Date(settings.start+'T12:00:00');
+    next.setDate(next.getDate() + Math.max(0,elapsed < 0 ? 0 : elapsed - passed) + cycle);
+    // คำนวณวันรอบถัดไปจากวันเริ่มรอบล่าสุด
+    const nextDate = new Date(settings.start+'T12:00:00');
+    let n = 0;
+    while (nextDate <= new Date(todayISO()+'T12:00:00') && n < 500) {
+      nextDate.setDate(nextDate.getDate()+cycle);
+      n++;
+    }
+    const iso = ${nextDate.getFullYear()}-${String(nextDate.getMonth()+1).padStart(2,'0')}-${String(nextDate.getDate()).padStart(2,'0')};
+    $('next').textContent = dateText(iso);
+    const diff = dayDiff(todayISO(),iso);
+    $('countdown').textContent = diff === 0 ? 'วันนี้เป็นวันที่คาดการณ์ไว้' : อีกประมาณ ${diff} วัน;
+  } else {
+    $('next').textContent = 'กรุณาบันทึกวันเริ่มรอบล่าสุด';
+    $('countdown').textContent = '';
+  }
+
+  renderLogs();
+}
+
+function saveSettings() {
+  const start = $('start').value;
+  const cycle = Number($('cycle').value);
+  const duration = Number($('duration').value);
+
+  if (!start || start > todayISO()) {
+    alert('กรุณาเลือกวันเริ่มประจำเดือนที่ถูกต้อง');
+    return;
+  }
+  if (cycle < 15 || cycle > 60 || !Number.isInteger(cycle)) {
+    alert('กรุณากรอกความยาวรอบเดือน 15–60 วัน');
+    return;
+  }
+  if (duration < 1 || duration > 15 || !Number.isInteger(duration)) {
+    alert('กรุณากรอกจำนวนวันที่มีประจำเดือน 1–15 วัน');
+    return;
+  }
+
+  settings = {start,cycle,duration};
+  localStorage.setItem('mpSettings',JSON.stringify(settings));
+  refresh();
+  alert('บันทึกข้อมูลแล้ว 💗');
+}
+
+function saveLog() {
+  const date = $('logDate').value;
+  if (!date || date > todayISO()) {
+    alert('กรุณาเลือกวันที่ที่ถูกต้อง');
+    return;
+  }
+
+  const entry = {
+    id: Date.now(),
+    date,
+    flow: $('flow').value,
+    pain: $('pain').value,
+    symptoms: $('symptoms').value,
+    note: $('note').value.trim()
+  };
+
+  logs.push(entry);
+  localStorage.setItem('mpLogs',JSON.stringify(logs));
+  $('note').value = '';
+  renderLogs();
+  alert('บันทึกอาการแล้ว 🌷');
+}
+
+function renderLogs() {
+  const area = $('records');
+  area.innerHTML = '';
+  $('empty').style.display = logs.length ? 'none' : 'block';
+
+  [...logs].sort((a,b)=>b.date.localeCompare(a.date)).forEach(log=>{
+    const item = document.createElement('div');
+    item.className = 'record';
+
+    const title = document.createElement('strong');
+    title.textContent = dateText(log.date);
+    item.appendChild(title);
+
+    const details = document.createElement('p');
+    details.textContent = ${log.flow} · ความปวด ${log.pain}/3 · ${log.symptoms};
+    item.appendChild(details);
+
+    if (log.note) {
+      const note = document.createElement('p');
+      note.textContent = log.note;
+      item.appendChild(note);
+    }
+
+    const del = document.createElement('button');
+    del.className = 'danger';
+    del.textContent = 'ลบรายการนี้';
+    del.onclick = () => {
+      if (confirm('ต้องการลบรายการนี้หรือไม่?')) {
+        logs = logs.filter(x=>x.id !== log.id);
+        localStorage.setItem('mpLogs',JSON.stringify(logs));
+        renderLogs();
+      }
+    };
+    item.appendChild(del);
+    area.appendChild(item);
+  });
+}
+
+function clearLogs() {
+  if (confirm('ต้องการลบประวัติอาการทั้งหมดหรือไม่?')) {
+    logs = [];
+    localStorage.setItem('mpLogs',JSON.stringify(logs));
+    renderLogs();
+  }
+}
+
+$('start').value = settings.start || '';
+$('cycle').value = settings.cycle || 28;
+$('duration').value = settings.duration || 5;
+$('logDate').value = todayISO();
+refresh();
+</script>
+</body>
+</html>

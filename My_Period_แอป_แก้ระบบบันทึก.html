@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Period - รอบเดือนของฉัน</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,"Noto Sans Thai",sans-serif;background:#fff5fa;color:#4b3945}
+.app{max-width:900px;margin:auto;min-height:100vh;background:#fff}
+header{padding:28px 28px 24px;background:linear-gradient(135deg,#f3a9c9,#cbb2f2);color:#fff;border-radius:0 0 30px 30px}
+header h1{margin:0;font-size:30px} header p{margin:7px 0 0}
+main{padding:20px}
+.tabs{display:flex;gap:8px;overflow:auto;margin-bottom:18px}
+.tabs button{border:0;background:#f8e7f0;color:#76586a;padding:11px 17px;border-radius:20px;cursor:pointer;white-space:nowrap}
+.tabs button.active{background:#e68fb6;color:white}
+.page{display:none}.page.active{display:block}
+.card{background:#fff;border-radius:22px;padding:20px;margin-bottom:16px;box-shadow:0 7px 25px rgba(92,48,78,.08)}
+.card h2{font-size:19px;margin:0 0 14px}
+.big{font-size:27px;font-weight:bold}.muted{color:#8c7885;font-size:14px;line-height:1.5}
+.btn{border:0;border-radius:14px;padding:12px 16px;cursor:pointer;font-size:15px}
+.primary{background:#e68fb6;color:white}.full{width:100%;margin-top:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:10px}
+.symptom{border:0;border-radius:15px;padding:13px;background:#fff0f6;color:#6d5262;cursor:pointer}
+.symptom.selected{background:#e68fb6;color:white}
+input,textarea,select{width:100%;padding:12px;border:1px solid #ead8e3;border-radius:13px;font:inherit;background:#fff}
+textarea{min-height:90px;resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:#fbecf4;border-radius:16px;padding:15px;text-align:center}
+.stat b{display:block;font-size:24px;margin-bottom:4px}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.day{min-height:42px;border-radius:10px;background:#faf7f9;padding:7px;text-align:center;font-size:13px}
+.day.head{background:transparent;font-weight:bold;color:#9b7e8f}.day.period{background:#e68fb6;color:#fff}.day.today{outline:2px solid #c9a1e5}
+.notice{padding:13px;border-radius:14px;background:#f7effc;font-size:13px;line-height:1.5}
+footer{padding:18px;text-align:center;color:#9b8792;font-size:12px}
+@media(max-width:560px){.row{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr 1fr}main{padding:14px}header{padding:25px 20px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <h1>🌷 My Period</h1>
+  <p>รอบเดือนของฉัน — บันทึกง่าย ดูแลตัวเองได้ทุกวัน</p>
+</header>
+
+<main>
+  <div class="tabs">
+    <button class="active" onclick="showPage('home',this)">🏠 หน้าหลัก</button>
+    <button onclick="showPage('calendar',this)">📅 ปฏิทิน</button>
+    <button onclick="showPage('record',this)">📝 บันทึก</button>
+    <button onclick="showPage('stats',this)">📊 สถิติ</button>
+  </div>
+
+  <section id="home" class="page active">
+    <div class="card">
+      <h2>💗 รอบเดือนล่าสุด</h2>
+      <div id="last" class="big">ยังไม่ได้บันทึก</div>
+      <p id="next" class="muted">กดปุ่มด้านล่างเพื่อเริ่มบันทึก</p>
+      <button class="btn primary full" onclick="startPeriod()">🩸 วันนี้เป็นวันแรกของประจำเดือน</button>
+    </div>
+    <div class="card">
+      <h2>🌸 สรุปวันนี้</h2>
+      <div class="stats">
+        <div class="stat"><b id="cycleDay">-</b>วันของรอบ</div>
+        <div class="stat"><b id="cycleLength">30</b>วันรอบ</div>
+        <div class="stat"><b id="savedCount">0</b>ครั้งที่บันทึก</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>ℹ️ เกี่ยวกับการคาดการณ์</h2>
+      <div class="notice">การคาดการณ์ในต้นแบบนี้ใช้ความยาวรอบที่ตั้งไว้เพื่อประมาณวันถัดไปเท่านั้น รอบเดือนจริงอาจเปลี่ยนแปลงได้ และข้อมูลนี้ไม่ใช่การวินิจฉัยหรือการคุมกำเนิด</div>
+    </div>
+  </section>
+
+  <section id="calendar" class="page">
+    <div class="card">
+      <h2>📅 ปฏิทินรอบเดือน</h2>
+      <div class="row">
+        <select id="month" onchange="drawCalendar()"></select>
+        <select id="year" onchange="drawCalendar()"></select>
+      </div>
+      <div class="calendar" id="cal" style="margin-top:15px"></div>
+      <p class="muted">สีชมพู = วันที่บันทึกว่าเป็นวันแรกของประจำเดือน</p>
+    </div>
+  </section>
+
+  <section id="record" class="page">
+    <div class="card">
+      <h2>🩷 บันทึกอาการวันนี้</h2>
+      <div class="grid">
+        <button class="symptom" onclick="toggleSymptom(this)">ปวดท้อง</button>
+        <button class="symptom" onclick="toggleSymptom(this)">ปวดหัว</button>
+        <button class="symptom" onclick="toggleSymptom(this)">เหนื่อย</button>
+        <button class="symptom" onclick="toggleSymptom(this)">อารมณ์แปรปรวน</button>
+        <button class="symptom" onclick="toggleSymptom(this)">ปวดหลัง</button>
+        <button class="symptom" onclick="toggleSymptom(this)">ไม่มีอาการ</button>
+      </div>
+      <h2 style="margin-top:20px">💧 ปริมาณเลือด</h2>
+      <select id="flow"><option>ไม่มี</option><option>น้อย</option><option>ปานกลาง</option><option>มาก</option></select>
+      <h2 style="margin-top:20px">📝 โน้ต</h2>
+      <textarea id="note" placeholder="เขียนสิ่งที่อยากบันทึก..."></textarea>
+      <button class="btn primary full" onclick="saveRecord()">บันทึกข้อมูลวันนี้</button>
+      <div id="saved" class="notice" style="display:none;margin-top:12px"></div>
+    </div>
+  </section>
+
+  <section id="stats" class="page">
+    <div class="card">
+      <h2>📊 สถิติของฉัน</h2>
+      <div class="stats">
+        <div class="stat"><b id="sCycles">0</b>รอบที่บันทึก</div>
+        <div class="stat"><b id="sLength">30</b>วัน/รอบ</div>
+        <div class="stat"><b id="sRecords">0</b>บันทึกอาการ</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>💾 สำรองข้อมูล</h2>
+      <div class="notice">ข้อมูลจะถูกเก็บไว้ในเบราว์เซอร์เครื่องนี้ และสามารถดาวน์โหลดไฟล์สำรองไว้เผื่อเปลี่ยนเครื่องได้</div>
+      <button class="btn primary full" onclick="backupData()">⬇️ ดาวน์โหลดข้อมูลสำรอง</button>
+      <input id="restoreFile" type="file" accept=".json" style="margin-top:12px">
+      <button class="btn full" onclick="restoreData()">⬆️ นำข้อมูลกลับเข้าแอป</button>
+    </div>
+    <div class="card">
+      <h2>🔒 ความเป็นส่วนตัว</h2>
+      <div class="notice">ข้อมูลของต้นแบบนี้เก็บไว้ในเบราว์เซอร์ของเครื่องด้วย localStorage และไม่ได้ส่งขึ้นเซิร์ฟเวอร์</div>
+    </div>
+  </section>
+</main>
+<footer>My Period 🌷 ต้นแบบสำหรับโครงงานนักเรียน</footer>
+</div>
+
+<script>
+const KEY='myPeriodData_v2';
+const OLD_KEY='myPeriodData';
+
+function loadData(){
+  try{
+    const saved=localStorage.getItem(KEY)||localStorage.getItem(OLD_KEY);
+    const parsed=saved?JSON.parse(saved):{periods:[],records:[]};
+    return {
+      periods:Array.isArray(parsed.periods)?parsed.periods:[],
+      records:Array.isArray(parsed.records)?parsed.records:[]
+    };
+  }catch(e){return {periods:[],records:[]};}
+}
+let data=loadData();
+
+function save(){
+  try{
+    localStorage.setItem(KEY,JSON.stringify(data));
+    render();
+    return true;
+  }catch(e){
+    alert('เบราว์เซอร์ไม่อนุญาตให้บันทึกข้อมูล กรุณาเปิดแอปใน Chrome ปกติ');
+    return false;
+  }
+}
+function fmt(d){return new Date(d).toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'});}
+function iso(d){
+  const x=new Date(d);
+  return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');
+}
+function startPeriod(){
+  const today=iso(new Date());
+  if(!data.periods.includes(today)) data.periods.push(today);
+  data.periods.sort();
+  save();
+  alert('บันทึกวันแรกของประจำเดือนแล้ว 🌷');
+}
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
+  if(id==='calendar')drawCalendar();
+  if(id==='stats')renderStats();
+}
+function toggleSymptom(el){el.classList.toggle('selected');}
+function saveRecord(){
+  const today=iso(new Date());
+  const symptoms=[...document.querySelectorAll('.symptom.selected')].map(x=>x.textContent.trim());
+  const record={date:today,symptoms,flow:document.getElementById('flow').value,note:document.getElementById('note').value.trim()};
+  const existing=data.records.findIndex(r=>r.date===today);
+  if(existing>=0) data.records[existing]=record;
+  else data.records.push(record);
+  if(save()){
+    document.getElementById('saved').style.display='block';
+    document.getElementById('saved').textContent='บันทึกข้อมูลวันนี้เรียบร้อยแล้ว 💗';
+    document.getElementById('note').value='';
+    document.querySelectorAll('.symptom.selected').forEach(x=>x.classList.remove('selected'));
+  }
+}
+function render(){
+  const last=data.periods[data.periods.length-1];
+  document.getElementById('savedCount').textContent=data.periods.length;
+  document.getElementById('sCycles').textContent=data.periods.length;
+  document.getElementById('sRecords').textContent=data.records.length;
+  if(last){
+    document.getElementById('last').textContent=fmt(last);
+    const next=new Date(last); next.setDate(next.getDate()+30);
+    document.getElementById('next').textContent='คาดการณ์รอบถัดไปประมาณ '+fmt(next);
+    const diff=Math.floor((new Date()-new Date(last))/(86400000))+1;
+    document.getElementById('cycleDay').textContent=Math.max(1,diff);
+  }
+  renderStats();
+}
+function renderStats(){
+  document.getElementById('sCycles').textContent=data.periods.length;
+  document.getElementById('sRecords').textContent=data.records.length;
+}
+function backupData(){
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='my-period-backup.json';a.click();
+  URL.revokeObjectURL(url);
+}
+function restoreData(){
+  const file=document.getElementById('restoreFile').files[0];
+  if(!file){alert('กรุณาเลือกไฟล์สำรองก่อน');return;}
+  const reader=new FileReader();
+  reader.onload=function(){
+    try{
+      const imported=JSON.parse(reader.result);
+      if(!Array.isArray(imported.periods)||!Array.isArray(imported.records)) throw new Error();
+      data=imported;
+      if(save()) alert('นำข้อมูลกลับมาแล้ว 💗');
+    }catch(e){alert('ไฟล์สำรองไม่ถูกต้อง');}
+  };
+  reader.readAsText(file);
+}
+function setupCalendar(){
+  const now=new Date(), m=document.getElementById('month'), y=document.getElementById('year');
+  for(let i=0;i<12;i++){let o=document.createElement('option');o.value=i;o.textContent=new Date(2000,i,1).toLocaleDateString('th-TH',{month:'long'});m.appendChild(o);}
+  for(let yy=now.getFullYear()-2;yy<=now.getFullYear()+2;yy++){let o=document.createElement('option');o.value=yy;o.textContent=yy+543;y.appendChild(o);}
+  m.value=now.getMonth();y.value=now.getFullYear();
+}
+function drawCalendar(){
+  const m=+document.getElementById('month').value,y=+document.getElementById('year').value,box=document.getElementById('cal');
+  box.innerHTML='';
+  ['อา','จ','อ','พ','พฤ','ศ','ส'].forEach(x=>{let d=document.createElement('div');d.className='day head';d.textContent=x;box.appendChild(d)});
+  const first=new Date(y,m,1).getDay(), days=new Date(y,m+1,0).getDate();
+  for(let i=0;i<first;i++)box.appendChild(document.createElement('div'));
+  for(let n=1;n<=days;n++){
+    let d=document.createElement('div');d.className='day';d.textContent=n;
+    const key=iso(new Date(y,m,n));
+    if(data.periods.includes(key))d.classList.add('period');
+    if(key===iso(new Date()))d.classList.add('today');
+    box.appendChild(d);
+  }
+}
+setupCalendar();render();
+</script>
+</body>
+</html>
